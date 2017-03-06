@@ -27,7 +27,8 @@ def lex_single_token(buffer):
     ("foo/bar", "SYMBOL"),
     (":foo", 'KEYWORD',),
     (":foo/bar", 'KEYWORD',),
-    (" \n\r\t", "WHITESPACE",),
+    (" \t\n\r", "WHITESPACE",),
+    ("      \n", "WHITESPACE",),
     ("; this is a sample comment\n", "COMMENT")
 ])
 def test_lex_examples(text, token_type):

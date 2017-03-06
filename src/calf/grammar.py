@@ -42,8 +42,13 @@ TOKENS = [
     (SYMBOL_PATTERN, 'SYMBOL',),
 
     # Whitespace
-    (r'\s+', 'WHITESPACE',),
+    #
+    # Note that the whitespace token will contain at most one newline
+    (r'[^\S\n\r]*(\n\r?)?', 'WHITESPACE',),
 
     # Comment
-    (r';([^\n].*?)\n\r?', 'COMMENT',)
+    (r';(([^\n\r]*)(\n\r?)?)', 'COMMENT',),
+
+    # Strings
+    (r'"(?P<body>(?:[^\"]|\.)*)"', 'STRING')
 ]

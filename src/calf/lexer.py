@@ -1,7 +1,9 @@
 """
 Calf lexer.
 
-Lexes sources of text into
+Provides machinery for lexing sources of text into sequences of tokens with textual information, as
+well as buffer position information appropriate for either full AST parsing, lossless syntax tree
+parsing, linting or other use.
 """
 
 import StringIO
@@ -17,9 +19,10 @@ class CalfLexer():
     """
     Lexer object.
 
-    Wraps something you can read characters from, and presents a sequence of Token objects.
+    Wraps something you can read characters from, and presents a lazy sequence of Token objects.
 
-    FIXME: how to handle remaining characters?
+    Raises ValueError at any time due to either a conflict in the grammar being lexed, or incomplete
+    input. Exceptions from the backing reader object are not masked.
     """
 
     def __init__(self, stream, source=None, metadata=None, tokens=TOKENS):
@@ -30,8 +33,22 @@ class CalfLexer():
         self.metadata = metadata or {}
         self.tokens = tokens
 
-    def __next_token__(self):
-        """FIXME"""
+    def next(self):
+        """
+        Tries to scan the next token off of the backing stream.
+
+        Starting with a list of all available tokens, an empty buffer and a single new character
+        peeked from the backing stream, reads more character so long as adding the next character
+        still leaves one or more possible matching "candidates" (token patterns).
+
+        When adding the next character from the stream would build an invalid token, a token of the
+        resulting single candidate type is generated.  If multiple candidates cannot be
+        distinguished between, a ValueError is produced.
+
+        At the end of input, if we have a single candidate remaining, a final token of that type is
+        generated.  Otherwise we are in an incomplete input state either due to incomplete input or
+        a grammar conflict.
+        """
 
         buffer = ""
         candidates = self.tokens
@@ -47,11 +64,17 @@ class CalfLexer():
             can2 = [t for t in candidates if re_whole_match(re_mem(t[0]), buff2)]
 
             # Try to include the last read character to support longest-wins grammars
-            if not can2 and len(candidates) == 1:
-                pat, type = candidates[0]
-                groups = re.match(re.compile(pat), buffer).groupdict()
-                groups.update(self.metadata)
-                return CalfToken(type, buffer, self.source, position, groups)
+            if not can2:
+                if len(candidates) == 1:
+                    pat, type = candidates[0]
+                    groups = re.match(re.compile(pat), buffer).groupdict()
+                    groups.update(self.metadata)
+                    return CalfToken(type, buffer, self.source, position, groups)
+
+                elif buffer:
+                    raise ValueError(
+                        "Buffer %r is ambiguous between token types\n- %s" % (
+                            buffer, '\n- '.join(type for pat, type in self.tokens)))
 
             else:
                 # Update the buffers
@@ -74,21 +97,30 @@ class CalfLexer():
             raise ValueError("Encountered end of buffer with incomplete token %r" % (buffer,))
 
     def __iter__(self):
-        """Scans tokens out of the character stream."""
+        """
+        Scans tokens out of the character stream.
+
+        May raise ValueError if there is either an issue with the grammar or the input.
+        Will not mask any exceptions from the backing reader.
+        """
 
         # While the character stream isn't empty
         while self._stream.peek()[1] != '':
-            yield self.__next_token__()
+            yield self.next()
 
 
 def lex_file(path):
-    """Lexes an entire file from a path."""
+    """
+    Returns the lazy sequence of tokens resulting from lexing all text in the named file.
+    """
 
     return CalfLexer(open(path, 'r'), path, metadata)
 
 
 def lex_buffer(buffer, metadata=None):
-    """Lexes an entire buffer"""
+    """
+    Returns the lazy sequence of tokens resulting from lexing all the text in a buffer.
+    """
 
     return CalfLexer(StringIO.StringIO(buffer), "<Buffer>", metadata)
 
