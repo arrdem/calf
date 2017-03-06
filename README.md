@@ -14,3 +14,7 @@ Because fuck it, and why let Tim have all the fun and hy is nice but not my flav
 
 It's not gonna be very Clojure-like tho.
 In fact who the hell knows what this is gonna be.
+
+## License
+
+MIT'd to Reid 'arrdem' McKenzie, 3/5/2016
