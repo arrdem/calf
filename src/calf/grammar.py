@@ -2,11 +2,13 @@
 The elements of the Calf grammar. Used by the lexer.
 """
 
-SIMPLE_SYMBOL = r'[^\[\]\(\)\{\}:;#^\s\d"\']+'
+DELIMS = r'\[\]\(\)\{\}:;#^\s"\''
+
+SIMPLE_SYMBOL = r'([^{ds}\d]+)|([^{ds}\-\+][^{ds}]+?)'.format(ds=DELIMS)
 
 SYMBOL_PATTERN = r'(((?P<namespace>{ss})/)?(?P<name>{ss}))'.format(ss=SIMPLE_SYMBOL)
 
-SIMPLE_INTEGER = r'[+-]?\d+'
+SIMPLE_INTEGER = r'[+-]?\d*'
 
 FLOAT_PATTERN = r'(?P<body>({i})(\.(\d*))?)?([eE](?P<exponent>{i}))?'.format(i=SIMPLE_INTEGER)
 
@@ -28,19 +30,19 @@ TOKENS = [
     (r'"', 'DOUBLE_QUOTE',),
     (r'#', 'MACRO_DISPATCH',),
 
+    # Symbols
+    (SYMBOL_PATTERN, 'SYMBOL',),
+
     # Numbers
-    (FLOAT_PATTERN, 'FLOAT',),
     (SIMPLE_INTEGER, 'INTEGER',),
+    (FLOAT_PATTERN, 'FLOAT',),
 
     # Keywords
     #
     # Note: this is a dirty f'n hack in that in order for keywords to work, ":"
     # has to be defined to be a valid keyword.
     (r':' + SYMBOL_PATTERN + '?', 'KEYWORD',),
-
-    # Symbols
-    (SYMBOL_PATTERN, 'SYMBOL',),
-
+    
     # Whitespace
     #
     # Note that the whitespace token will contain at most one newline

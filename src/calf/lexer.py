@@ -22,7 +22,10 @@ class CalfLexer():
     Wraps something you can read characters from, and presents a lazy sequence of Token objects.
 
     Raises ValueError at any time due to either a conflict in the grammar being lexed, or incomplete
-    input. Exceptions from the backing reader object are not masked.
+    input.  Exceptions from the backing reader object are not masked.
+
+    Rule order is used to decide conflicts.  If multiple patterns would match an input, the "first"
+    in token list order wins.
     """
 
     def __init__(self, stream, source=None, metadata=None, tokens=TOKENS):
@@ -42,8 +45,7 @@ class CalfLexer():
         still leaves one or more possible matching "candidates" (token patterns).
 
         When adding the next character from the stream would build an invalid token, a token of the
-        resulting single candidate type is generated.  If multiple candidates cannot be
-        distinguished between, a ValueError is produced.
+        resulting single candidate type is generated.
 
         At the end of input, if we have a single candidate remaining, a final token of that type is
         generated.  Otherwise we are in an incomplete input state either due to incomplete input or
@@ -55,7 +57,7 @@ class CalfLexer():
         position, chr = self._stream.peek()
 
         while chr:
-            print "%r %r %r" % (buffer, chr, candidates)
+            print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
 
             if not candidates:
                 raise ValueError("Entered invalid state - no candidates!")
@@ -64,17 +66,11 @@ class CalfLexer():
             can2 = [t for t in candidates if re_whole_match(re_mem(t[0]), buff2)]
 
             # Try to include the last read character to support longest-wins grammars
-            if not can2:
-                if len(candidates) == 1:
+            if not can2 and len(candidates) >= 1:
                     pat, type = candidates[0]
                     groups = re.match(re.compile(pat), buffer).groupdict()
                     groups.update(self.metadata)
                     return CalfToken(type, buffer, self.source, position, groups)
-
-                elif buffer:
-                    raise ValueError(
-                        "Buffer %r is ambiguous between token types\n- %s" % (
-                            buffer, '\n- '.join(type for pat, type in self.tokens)))
 
             else:
                 # Update the buffers
@@ -87,7 +83,7 @@ class CalfLexer():
                 # set chr to be the next peeked character
                 _, chr = self._stream.peek()
 
-        if len(candidates) == 1:
+        if len(candidates) >= 1:
             pat, type = candidates[0]
             groups = re.match(re.compile(pat), buffer).groupdict()
             groups.update(self.metadata)
