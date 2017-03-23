@@ -122,7 +122,7 @@ def parse_stream(stream):
 
         # Case 3 - we got an unexpected close
         elif token.type in MATCHING.values():
-            # FIXME: recover the parser if possibile?
+            # FIXME: recover the parser if possible?
             raise CalfParseError("Unexpected close token", token)
 
         # Case 4 - we got whitespace
