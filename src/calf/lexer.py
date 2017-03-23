@@ -57,8 +57,7 @@ class CalfLexer():
         position, chr = self._stream.peek()
 
         while chr:
-            print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
-
+            #print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
             if not candidates:
                 raise ValueError("Entered invalid state - no candidates!")
 

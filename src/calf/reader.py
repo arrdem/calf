@@ -1,6 +1,5 @@
 """
 Various Reader class instances.
-
 """
 
 
