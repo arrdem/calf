@@ -8,6 +8,7 @@ from calf.lexer import lex_buffer, lex_file
 from calf.grammar import MATCHING, WHITESPACE_TYPES
 from calf.token import *
 
+
 def mk_list(contents, open=None, close=None):
     return CalfListToken('LIST', contents, open.source,
                          open.start_position, close.start_position)
@@ -87,7 +88,7 @@ def parse_stream(stream):
     # `stack` is a list (used as a stack) of tuples (buffer, close, ctor).
     # Tokens are accumulated in a buffer, until a matching close token is
     # found.
-    # 
+    #
     # This is a very simple parser intended to support only the simplest of
     # syntactic constructs while providing actually quite good parse error
     # traceback.
@@ -151,14 +152,6 @@ def parse_stream(stream):
         raise CalfMissingCloseParseError(el.close_type, el.open_token)
 
 
-def parse_file(file):
-    """
-    Parses a file, producing a lazy sequence of all read top level forms.
-    """
-    for atom in parse_stream(lex_file(file)):
-        yield atom
-
-
 def parse_buffer(buffer):
     """
     Parses a buffer, producing a lazy sequence of all read top level forms.
@@ -166,4 +159,12 @@ def parse_buffer(buffer):
     Propagates all errors.
     """
     for atom in parse_stream(lex_buffer(buffer)):
+        yield atom
+
+
+def parse_file(file):
+    """
+    Parses a file, producing a lazy sequence of all read top level forms.
+    """
+    for atom in parse_stream(lex_file(file)):
         yield atom

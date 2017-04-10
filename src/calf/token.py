@@ -74,7 +74,7 @@ class CalfListToken(CalfBlockToken, list):
 
 
 class CalfDictToken(CalfBlockToken, dict):
-    """"
+    """
     (dict) Token object.
 
     The final(ish) result of reading a braces list through the Calf lexer stack.
