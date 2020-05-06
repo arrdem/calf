@@ -11,13 +11,15 @@ appropriate to interactive development workflows and monorepos.
 from collections import namedtuple
 
 
-class CalfLoaderConfig(namedtuple('CalfLoaderConfig', ['paths'])):
-  """
+class CalfLoaderConfig(namedtuple("CalfLoaderConfig", ["paths"])):
+    """
   """
 
 
-class CalfDelayedPackage(namedtuple('CalfDelayedPackage', ['name', 'version', 'metadata', 'path'])):
-  """
+class CalfDelayedPackage(
+    namedtuple("CalfDelayedPackage", ["name", "version", "metadata", "path"])
+):
+    """
   This structure represents the delay of loading a packaage.
 
   Rather than eagerly analyze packages, it may be profitable to use lazy loading / lazy resolution
@@ -25,15 +27,17 @@ class CalfDelayedPackage(namedtuple('CalfDelayedPackage', ['name', 'version', 'm
   """
 
 
-class CalfPackage(namedtuple('CalfPackage', ['name', 'version', 'metadata', 'modules'])):
-  """
+class CalfPackage(
+    namedtuple("CalfPackage", ["name", "version", "metadata", "modules"])
+):
+    """
   This structure represents the result of forcing the load of a package, and is the product of
   either loading a package directly, or a package becoming a direct dependency and being forced.
   """
 
 
 def parse_package_requirement(config, env, requirement):
-  """
+    """
   :param config:
   :param env:
   :param requirement:
@@ -44,7 +48,7 @@ def parse_package_requirement(config, env, requirement):
 
 
 def analyze_package(config, env, package):
-  """
+    """
   :param config:
   :param env:
   :param module:

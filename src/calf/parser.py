@@ -10,34 +10,42 @@ from calf.token import *
 
 
 def mk_list(contents, open=None, close=None):
-    return CalfListToken('LIST', contents, open.source,
-                         open.start_position, close.start_position)
+    return CalfListToken(
+        "LIST", contents, open.source, open.start_position, close.start_position
+    )
 
 
 def mk_sqlist(contents, open=None, close=None):
-    return CalfListToken('SQLIST', contents, open.source,
-                         open.start_position, close.start_position)
+    return CalfListToken(
+        "SQLIST", contents, open.source, open.start_position, close.start_position
+    )
 
 
 def mk_dict(contents, open=None, close=None):
-    return CalfDictToken('DICT', dict(*list(zip(contents[::2], contents[1::2]))), open.source,
-                         open.start_position, close.start_position)
+    return CalfDictToken(
+        "DICT",
+        dict(*list(zip(contents[::2], contents[1::2]))),
+        open.source,
+        open.start_position,
+        close.start_position,
+    )
 
 
 MATCHING_CTOR = {
     # Compound tokens
-    'PAREN_LEFT': mk_list,
-    'BRACE_LEFT': mk_dict,
-    'BRACKET_LEFT': mk_sqlist,
-
+    "PAREN_LEFT": mk_list,
+    "BRACE_LEFT": mk_dict,
+    "BRACKET_LEFT": mk_sqlist,
     # Singleton tokens
-    'INTEGER': CalfIntegerToken,
-    'FLOAT': CalfFloatToken,
-    'STRING': CalfStrToken
+    "INTEGER": CalfIntegerToken,
+    "FLOAT": CalfFloatToken,
+    "STRING": CalfStrToken,
 }
 
 
-ParseStackElement = namedtuple('ParseStackElement', ['buffer', 'open_token', 'close_type', 'ctor'])
+ParseStackElement = namedtuple(
+    "ParseStackElement", ["buffer", "open_token", "close_type", "ctor"]
+)
 
 
 class CalfParseError(Exception):
@@ -59,9 +67,7 @@ class CalfUnexpectedCloseParseError(CalfParseError):
         self.expecting_position = expecting_position
 
     def __str__(self):
-        return "Parse error at %r: %s" % (
-            self.token.position, self.message,
-        )
+        return "Parse error at %r: %s" % (self.token.position, self.message,)
 
 
 class CalfMissingCloseParseError(CalfParseError):
@@ -76,7 +82,8 @@ class CalfMissingCloseParseError(CalfParseError):
 
     def __str__(self):
         return "Parse error: expected %s starting from %r, got end of file." % (
-            self.expected_close_token, self.open_token.position,
+            self.expected_close_token,
+            self.open_token.position,
         )
 
 
@@ -118,8 +125,11 @@ def parse_stream(stream):
             tokens = list()
 
             # Create & push a new stack element
-            stack.append(ParseStackElement(
-                tokens, token, MATCHING[token.type], MATCHING_CTOR[token.type]))
+            stack.append(
+                ParseStackElement(
+                    tokens, token, MATCHING[token.type], MATCHING_CTOR[token.type]
+                )
+            )
 
         # Case 3 - we got an unexpected close
         elif token.type in list(MATCHING.values()):

@@ -10,7 +10,7 @@ bits in terms of acting like values, while preserving fairly extensive source in
 """
 
 
-class CalfToken():
+class CalfToken:
     """
     Token object.
 
@@ -27,7 +27,12 @@ class CalfToken():
 
     def __repr__(self):
         return "<CalfToken:%s %r %r@%r:%r %r>" % (
-            self.type, self.value, self.source, self.line, self.column, self.more
+            self.type,
+            self.value,
+            self.source,
+            self.line,
+            self.column,
+            self.more,
         )
 
     def __str__(self):
@@ -69,7 +74,9 @@ class CalfListToken(CalfBlockToken, list):
     """
 
     def __init__(self, type, value, source, start_position, end_position):
-        CalfBlockToken.__init__(self, type, value, source, start_position, end_position, None)
+        CalfBlockToken.__init__(
+            self, type, value, source, start_position, end_position, None
+        )
         list.__init__(self, value)
 
 
@@ -81,7 +88,9 @@ class CalfDictToken(CalfBlockToken, dict):
     """
 
     def __init__(self, type, value, source, start_position, end_position):
-        CalfBlockToken.__init__(self, type, value, source, start_position, end_position, None)
+        CalfBlockToken.__init__(
+            self, type, value, source, start_position, end_position, None
+        )
         dict.__init__(self, value)
 
 
@@ -94,10 +103,17 @@ class CalfIntegerToken(CalfToken, int):
     """
 
     def __new__(cls, value):
-        return  int.__new__(cls, value.value)
+        return int.__new__(cls, value.value)
 
     def __init__(self, value):
-        CalfToken.__init__(self, value.type, value.value, value.source, value.start_position, value.more)
+        CalfToken.__init__(
+            self,
+            value.type,
+            value.value,
+            value.source,
+            value.start_position,
+            value.more,
+        )
 
 
 class CalfFloatToken(CalfToken, float):
@@ -109,10 +125,17 @@ class CalfFloatToken(CalfToken, float):
     """
 
     def __new__(cls, value):
-        return  float.__new__(cls, value.value)
+        return float.__new__(cls, value.value)
 
     def __init__(self, value):
-        CalfToken.__init__(self, value.type, value.value, value.source, value.start_position, value.more)
+        CalfToken.__init__(
+            self,
+            value.type,
+            value.value,
+            value.source,
+            value.start_position,
+            value.more,
+        )
 
 
 class CalfStrToken(CalfToken, float):
@@ -124,7 +147,14 @@ class CalfStrToken(CalfToken, float):
     """
 
     def __new__(cls, value):
-        return  str.__new__(cls, value.value)
+        return str.__new__(cls, value.value)
 
     def __init__(self, value):
-        CalfToken.__init__(self, value.type, value.value, value.source, value.start_position, value.more)
+        CalfToken.__init__(
+            self,
+            value.type,
+            value.value,
+            value.source,
+            value.start_position,
+            value.more,
+        )

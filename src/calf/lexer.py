@@ -15,7 +15,7 @@ from calf.grammar import TOKENS
 from calf.util import *
 
 
-class CalfLexer():
+class CalfLexer:
     """
     Lexer object.
 
@@ -31,7 +31,9 @@ class CalfLexer():
     def __init__(self, stream, source=None, metadata=None, tokens=TOKENS):
         """FIXME"""
 
-        self._stream = PeekPosReader(stream) if not isinstance(stream, PeekPosReader) else stream
+        self._stream = (
+            PeekPosReader(stream) if not isinstance(stream, PeekPosReader) else stream
+        )
         self.source = source
         self.metadata = metadata or {}
         self.tokens = tokens
@@ -57,7 +59,7 @@ class CalfLexer():
         position, chr = self._stream.peek()
 
         while chr:
-            #print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
+            # print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
             if not candidates:
                 raise ValueError("Entered invalid state - no candidates!")
 
@@ -66,10 +68,10 @@ class CalfLexer():
 
             # Try to include the last read character to support longest-wins grammars
             if not can2 and len(candidates) >= 1:
-                    pat, type = candidates[0]
-                    groups = re.match(re.compile(pat), buffer).groupdict()
-                    groups.update(self.metadata)
-                    return CalfToken(type, buffer, self.source, position, groups)
+                pat, type = candidates[0]
+                groups = re.match(re.compile(pat), buffer).groupdict()
+                groups.update(self.metadata)
+                return CalfToken(type, buffer, self.source, position, groups)
 
             else:
                 # Update the buffers
@@ -89,7 +91,9 @@ class CalfLexer():
             return CalfToken(type, buffer, self.source, position, groups)
 
         else:
-            raise ValueError("Encountered end of buffer with incomplete token %r" % (buffer,))
+            raise ValueError(
+                "Encountered end of buffer with incomplete token %r" % (buffer,)
+            )
 
     def __iter__(self):
         """
@@ -100,7 +104,7 @@ class CalfLexer():
         """
 
         # While the character stream isn't empty
-        while self._stream.peek()[1] != '':
+        while self._stream.peek()[1] != "":
             yield next(self)
 
 
@@ -109,7 +113,7 @@ def lex_file(path):
     Returns the lazy sequence of tokens resulting from lexing all text in the named file.
     """
 
-    return CalfLexer(open(path, 'r'), path, metadata)
+    return CalfLexer(open(path, "r"), path, metadata)
 
 
 def lex_buffer(buffer, metadata=None):

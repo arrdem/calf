@@ -35,18 +35,24 @@ class PosReader(object):
         if n == 1:
             chr = self.reader.read(n)
 
-            if chr != '':
+            if chr != "":
                 self.offset += 1
                 self.column += 1
 
-            if chr == '\n':
+            if chr == "\n":
                 self.line += 1
                 self.column = 0
 
-            return (p, chr,)
+            return (
+                p,
+                chr,
+            )
 
         else:
-            return (p, ''.join(self.read(n=1)[1] for i in range(n)),)
+            return (
+                p,
+                "".join(self.read(n=1)[1] for i in range(n)),
+            )
 
     @property
     def position(self):
@@ -73,7 +79,7 @@ class PeekPosReader(PosReader):
             return a
 
         else:
-            p, t = self._peek or (None, '')
+            p, t = self._peek or (None, "")
 
             if self._peek:
                 self._peek = None
