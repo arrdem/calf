@@ -10,7 +10,7 @@ import io
 import re
 
 from calf.token import CalfToken
-from calf.reader import PeekPosReader
+from calf.io.reader import PeekPosReader
 from calf.grammar import TOKENS
 from calf.util import *
 
