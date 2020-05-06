@@ -1,7 +1,11 @@
 """
 The Calf package infrastructure.
 
+Calf's packaging infrastructure is very heavily inspired by Maven, and seeks first and foremost to
+provide statically understandable, repeatable builds.
 
+However the loading infrastructure is designed to simultaneously support from-source builds
+appropriate to interactive development workflows and monorepos.
 """
 
 from collections import namedtuple

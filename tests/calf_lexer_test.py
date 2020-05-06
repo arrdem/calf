@@ -13,7 +13,8 @@ import pytest
 
 def lex_single_token(buffer):
   """Lexes a single token from the buffer."""
-  return cl.lex_buffer(buffer).__iter__().next()
+
+  return next(iter(cl.lex_buffer(buffer)))
 
 
 @parametrize(

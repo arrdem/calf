@@ -20,7 +20,7 @@ def mk_sqlist(contents, open=None, close=None):
 
 
 def mk_dict(contents, open=None, close=None):
-    return CalfDictToken('DICT', dict(*zip(contents[::2], contents[1::2])), open.source,
+    return CalfDictToken('DICT', dict(*list(zip(contents[::2], contents[1::2]))), open.source,
                          open.start_position, close.start_position)
 
 
@@ -122,7 +122,7 @@ def parse_stream(stream):
                 tokens, token, MATCHING[token.type], MATCHING_CTOR[token.type]))
 
         # Case 3 - we got an unexpected close
-        elif token.type in MATCHING.values():
+        elif token.type in list(MATCHING.values()):
             # FIXME: recover the parser if possible?
             raise CalfParseError("Unexpected close token", token)
 
@@ -158,6 +158,7 @@ def parse_buffer(buffer):
 
     Propagates all errors.
     """
+
     for atom in parse_stream(lex_buffer(buffer)):
         yield atom
 
@@ -166,5 +167,6 @@ def parse_file(file):
     """
     Parses a file, producing a lazy sequence of all read top level forms.
     """
+
     for atom in parse_stream(lex_file(file)):
         yield atom

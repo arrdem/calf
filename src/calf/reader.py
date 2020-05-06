@@ -3,7 +3,7 @@ Various Reader class instances.
 """
 
 
-class Position():
+class Position(object):
     def __init__(self, offset, line, column):
         self.offset = offset
         self.line = line
@@ -16,7 +16,7 @@ class Position():
         return self.__repr__()
 
 
-class PosReader():
+class PosReader(object):
     """A wrapper for anything that can be read from. Tracks offset, line and column information."""
 
     def __init__(self, reader):
@@ -33,7 +33,7 @@ class PosReader():
         p = self.position
 
         if n == 1:
-            chr = self.reader.read(n=n)
+            chr = self.reader.read(n)
 
             if chr != '':
                 self.offset += 1

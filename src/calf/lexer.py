@@ -6,7 +6,7 @@ well as buffer position information appropriate for either full AST parsing, los
 parsing, linting or other use.
 """
 
-import StringIO
+import io
 import re
 
 from calf.token import CalfToken
@@ -36,7 +36,7 @@ class CalfLexer():
         self.metadata = metadata or {}
         self.tokens = tokens
 
-    def next(self):
+    def __next__(self):
         """
         Tries to scan the next token off of the backing stream.
 
@@ -101,7 +101,7 @@ class CalfLexer():
 
         # While the character stream isn't empty
         while self._stream.peek()[1] != '':
-            yield self.next()
+            yield next(self)
 
 
 def lex_file(path):
@@ -117,7 +117,7 @@ def lex_buffer(buffer, metadata=None):
     Returns the lazy sequence of tokens resulting from lexing all the text in a buffer.
     """
 
-    return CalfLexer(StringIO.StringIO(buffer), "<Buffer>", metadata)
+    return CalfLexer(io.StringIO(buffer), "<Buffer>", metadata)
 
 
 if __name__ == "__main__":
