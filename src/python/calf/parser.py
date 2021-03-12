@@ -169,10 +169,6 @@ def parse_stream(stream,
 
         # Case 4 - we got whitespace
         elif token.type in WHITESPACE_TYPES and discard_whitespace:
-            # FIXME: don't discard whitespace all the time.
-            #
-            # It would be awesome if whitespace & comments were node metadata
-            # in the style of the MSFT CODE editor.
             continue
 
         # Case 5 - we got an internal token
