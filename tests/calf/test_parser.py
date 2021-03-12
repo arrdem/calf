@@ -89,6 +89,39 @@ def test_parse_sqlist(text, element_types):
 
 
 @pytest.mark.parametrize('text, element_pairs', [
+    ("{}",
+     []),
+
+    ("{:foo 1}",
+     [["KEYWORD", "INTEGER"]]),
+
+    ("{:foo 1, :bar 2}",
+     [["KEYWORD", "INTEGER"],
+      ["KEYWORD", "INTEGER"]]),
+
+    ("{foo 1, bar 2}",
+     [["SYMBOL", "INTEGER"],
+      ["SYMBOL", "INTEGER"]]),
+
+    ("{foo 1, bar -2}",
+     [["SYMBOL", "INTEGER"],
+      ["SYMBOL", "INTEGER"]]),
+
+    ("{foo 1, bar -2e0}",
+     [["SYMBOL", "INTEGER"],
+      ["SYMBOL", "FLOAT"]]),
+
+    ("{foo ()}",
+     [["SYMBOL", "LIST"]]),
+
+    ("{foo []}",
+     [["SYMBOL", "SQLIST"]]),
+
+    ("{foo {}}",
+     [["SYMBOL", "DICT"]]),
 ])
 def test_parse_dict(text, element_pairs):
     """Test we can parse various mappings."""
+    d_t = next(cp.parse_buffer(text, discard_whitespace=True))
+    assert d_t.type == "DICT"
+    assert [[t.type for t in pair] for pair in d_t.value] == element_pairs
