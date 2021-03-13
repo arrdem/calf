@@ -37,8 +37,10 @@ def curse_repl(handle_buffer):
             cur = 8
             def putstr(str, x=0, attr=0):
                 nonlocal cur
-                stdscr.addstr(cur, x, str, attr)
-                cur += (len(str.split("\n")) or 1)
+                # This is how we handle going off the bottom of the scren lol
+                if cur < maxy:
+                    stdscr.addstr(cur, x, str, attr)
+                    cur += (len(str.split("\n")) or 1)
 
             for ex, buff, tokens in reversed(examples):
                 putstr(f"Example {ex}", attr=curses.A_BOLD)

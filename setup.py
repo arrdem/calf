@@ -2,7 +2,7 @@
 
 from os import path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 
 # Fetch the README contents
@@ -16,8 +16,7 @@ setup(
     version="0.0.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    package_dir={"": "src/python"},
-    packages=find_packages(where="src/python"),
+    packages=find_namespace_packages(include=["calf.*"]),
     entry_points={
         "console_scripts": [
             "calflex = calf.lexer:main",
