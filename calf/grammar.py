@@ -23,8 +23,7 @@ FLOAT_PATTERN = r"(?P<body>({i})(\.(\d*))?)?([eE](?P<exponent>{i}))?".format(
 #   for the " closing anchor of a string, or the \n closing anchor of a comment.
 #   So we have to do this weird thing where the _required_ terminators are
 #   actually _optional_ here so that the parser works.
-STRING_PATTERN = r'"((\\"|[^"])*?)"?'
-TRIPPLE_STRING_PATTERN = r'""".*?(""")?'
+STRING_PATTERN = r'(""".*?(""")?)|("((\\"|[^"])*?)"?)'
 COMMENT_PATTERN = r";(([^\n\r]*)(\n\r?)?)"
 
 TOKENS = [
@@ -40,7 +39,6 @@ TOKENS = [
     (r"\^", "META",),
     (r"'", "SINGLE_QUOTE",),
     (STRING_PATTERN, "STRING",),
-    (TRIPPLE_STRING_PATTERN, "STRING",),
     (r"#", "MACRO_DISPATCH",),
     # Symbols
     (SYMBOL_PATTERN, "SYMBOL",),

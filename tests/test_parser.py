@@ -22,6 +22,17 @@ def test_bad_strings_raise(text):
         next(cp.parse_buffer(text))
 
 
+@parametrize("buff, value", [
+    ('"foo"', "foo"),
+    ('"foo\tbar"', "foo\tbar"),
+    ('"foo\n\rbar"', "foo\n\rbar"),
+    ('"foo\\"bar\\""', "foo\"bar\""),
+    ('"""foo"""', 'foo'),
+    ('"""foo"bar"baz"""', 'foo"bar"baz'),
+])
+def test_strings_round_trip(buff, value):
+    assert next(cp.parse_buffer(buff)) == value
+
 @parametrize('text, element_types', [
     # Integers
     ("(1)", ["INTEGER"]),

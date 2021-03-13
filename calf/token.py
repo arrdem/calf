@@ -147,16 +147,25 @@ class CalfStrToken(CalfToken, str):
     """
 
     def __new__(cls, value):
-        value = value.value
+        buff = value.value
 
-        if value.startswith('"""') and not value.endswith('"""'):
+        if buff.startswith('"""') and not buff.endswith('"""'):
             raise ValueError('Unterminated tripple quote string')
-        elif value.startswith('"') and not value.endswith('"'):
+
+        elif buff.startswith('"') and not buff.endswith('"'):
             raise ValueError('Unterminated quote string')
-        else:
+
+        elif not buff.startswith('"') or buff == '"' or buff == '"""':
             raise ValueError('Illegal string')
 
-        return str.__new__(cls, value)
+        if buff.startswith('"""'):
+            buff = buff[3:-3]
+        else:
+            buff = buff[1:-1]
+
+        buff = buff.encode("utf-8").decode("unicode_escape")  # Handle escape codes
+
+        return str.__new__(cls, buff)
 
     def __init__(self, value):
         CalfToken.__init__(
