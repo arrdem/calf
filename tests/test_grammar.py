@@ -5,11 +5,10 @@ Tests covering the Calf grammar.
 import re
 
 from calf import grammar as cg
+from conftest import parametrize
 
-import pytest
 
-
-@pytest.mark.parametrize('ex', [
+@parametrize('ex', [
     # Proper strings
     '""',
     '"foo bar"',
@@ -26,7 +25,7 @@ def test_match_string(ex):
     assert re.fullmatch(cg.STRING_PATTERN, ex)
 
 
-@pytest.mark.parametrize('ex', [
+@parametrize('ex', [
     # Proper strings
     '""""""',
     '"""foo bar baz"""',

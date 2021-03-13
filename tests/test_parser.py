@@ -2,13 +2,27 @@
 Tests of calf.parser
 """
 
-
 import calf.parser as cp
+from conftest import parametrize
 
 import pytest
 
 
-@pytest.mark.parametrize('text, element_types', [
+@parametrize("text", [
+    '"',
+    '"foo bar',
+    '"""foo bar',
+    '"""foo bar"',
+])
+def test_bad_strings_raise(text):
+    """Tests asserting we won't let obviously bad strings fly."""
+    # FIXME (arrdem 2021-03-13):
+    #   Can we provide this behavior in the lexer rather than in the parser?
+    with pytest.raises(ValueError):
+        next(cp.parse_buffer(text))
+
+
+@parametrize('text, element_types', [
     # Integers
     ("(1)", ["INTEGER"]),
     ("( 1 )", ["INTEGER"]),
@@ -40,6 +54,9 @@ import pytest
     ("(,:foo,)", ["KEYWORD"]),
     ("(:foo :bar)", ["KEYWORD", "KEYWORD"]),
     ("(:foo :bar 1)", ["KEYWORD", "KEYWORD", "INTEGER"]),
+
+    # Strings
+    ('("foo", "bar", "baz")', ["STRING", "STRING", "STRING"]),
 ])
 def test_parse_list(text, element_types):
     """Test we can parse various lists of contents."""
@@ -48,7 +65,7 @@ def test_parse_list(text, element_types):
     assert [t.type for t in l_t] == element_types
 
 
-@pytest.mark.parametrize('text, element_types', [
+@parametrize('text, element_types', [
     # Integers
     ("[1]", ["INTEGER"]),
     ("[ 1 ]", ["INTEGER"]),
@@ -80,6 +97,9 @@ def test_parse_list(text, element_types):
     ("[,:foo,]", ["KEYWORD"]),
     ("[:foo :bar]", ["KEYWORD", "KEYWORD"]),
     ("[:foo :bar 1]", ["KEYWORD", "KEYWORD", "INTEGER"]),
+
+    # Strings
+    ('["foo", "bar", "baz"]', ["STRING", "STRING", "STRING"]),
 ])
 def test_parse_sqlist(text, element_types):
     """Test we can parse various 'square' lists of contents."""
@@ -88,7 +108,7 @@ def test_parse_sqlist(text, element_types):
     assert [t.type for t in l_t] == element_types
 
 
-@pytest.mark.parametrize('text, element_pairs', [
+@parametrize('text, element_pairs', [
     ("{}",
      []),
 
@@ -119,6 +139,9 @@ def test_parse_sqlist(text, element_types):
 
     ("{foo {}}",
      [["SYMBOL", "DICT"]]),
+
+    ('{"foo" {}}',
+     [["STRING", "DICT"]])
 ])
 def test_parse_dict(text, element_pairs):
     """Test we can parse various mappings."""

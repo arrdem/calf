@@ -138,7 +138,7 @@ class CalfFloatToken(CalfToken, float):
         )
 
 
-class CalfStrToken(CalfToken, float):
+class CalfStrToken(CalfToken, str):
     """
     (str) Token object.
 
@@ -147,7 +147,16 @@ class CalfStrToken(CalfToken, float):
     """
 
     def __new__(cls, value):
-        return str.__new__(cls, value.value)
+        value = value.value
+
+        if value.startswith('"""') and not value.endswith('"""'):
+            raise ValueError('Unterminated tripple quote string')
+        elif value.startswith('"') and not value.endswith('"'):
+            raise ValueError('Unterminated quote string')
+        else:
+            raise ValueError('Illegal string')
+
+        return str.__new__(cls, value)
 
     def __init__(self, value):
         CalfToken.__init__(
