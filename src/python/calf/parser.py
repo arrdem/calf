@@ -5,6 +5,7 @@ The Calf parser.
 from collections import namedtuple
 from itertools import tee
 import logging
+from typing import NamedTuple, Callable
 
 from calf.lexer import lex_buffer, lex_file
 from calf.grammar import MATCHING, WHITESPACE_TYPES
@@ -53,9 +54,18 @@ MATCHING_CTOR = {
 }
 
 
-ParseStackElement = namedtuple(
-    "ParseStackElement", ["tokens", "open_token", "close_type", "ctor"]
-)
+class ParseStackElement(NamedTuple):
+    """The parser maintains an internal push-pop top stack used to build up tokens.
+
+    Parse stack elements track all the component subtokens parsed so far, the
+    close token which is being awaited and the constructor which will
+    manufacture a "complete" token given the contents, open and close tokens.
+
+    """
+    tokens: list
+    open_token: CalfToken
+    close_type: str
+    ctor: Callable[[list, CalfToken, CalfToken], CalfToken]
 
 
 class CalfParseError(Exception):
