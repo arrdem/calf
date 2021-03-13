@@ -32,8 +32,10 @@ def lex_single_token(buffer):
         ("foo/bar", "SYMBOL"),
         (":foo", "KEYWORD",),
         (":foo/bar", "KEYWORD",),
-        (" \t\n\r", "WHITESPACE",),
-        ("  ,    \n", "WHITESPACE",),
+        (" ,,\t ,, \t", "WHITESPACE",),
+        ("\n\r", "WHITESPACE"),
+        ("\n", "WHITESPACE"),
+        ("  ,    ", "WHITESPACE",),
         ("; this is a sample comment\n", "COMMENT"),
     ],
 )
