@@ -43,7 +43,7 @@ TOKENS = [
     # Whitespace
     #
     # Note that the whitespace token will contain at most one newline
-    (r"[{ws}]*".format(ws=WHITESPACE), "WHITESPACE",),
+    (r"(\n\r?|[,\t ]*)", "WHITESPACE",),
     # Comment
     (r";(([^\n\r]*)(\n\r?)?)", "COMMENT",),
     # Strings

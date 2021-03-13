@@ -8,6 +8,7 @@ parsing, linting or other use.
 
 import io
 import re
+import sys
 
 from calf.token import CalfToken
 from calf.io.reader import PeekPosReader
@@ -59,7 +60,6 @@ class CalfLexer:
         position, chr = self._stream.peek()
 
         while chr:
-            # print "%r %r %r" % (buffer, chr, [c[1] for c in candidates])
             if not candidates:
                 raise ValueError("Entered invalid state - no candidates!")
 
@@ -108,21 +108,29 @@ class CalfLexer:
             yield next(self)
 
 
-def lex_file(path):
+def lex_file(path, metadata=None):
     """
-    Returns the lazy sequence of tokens resulting from lexing all text in the named file.
+    Returns the sequence of tokens resulting from lexing all text in the named file.
     """
 
-    return CalfLexer(open(path, "r"), path, metadata)
+    with open(path, "r") as f:
+        return list(CalfLexer(f, path, {}))
 
 
-def lex_buffer(buffer, metadata=None):
+def lex_buffer(buffer, source="<Buffer>", metadata=None):
     """
     Returns the lazy sequence of tokens resulting from lexing all the text in a buffer.
     """
 
-    return CalfLexer(io.StringIO(buffer), "<Buffer>", metadata)
+    return CalfLexer(io.StringIO(buffer), source, metadata)
 
 
-if __name__ == "__main__":
-    pass
+def main():
+    """A CURSES application for using the lexer."""
+
+    from calf.curserepl import curse_repl
+
+    def handle_buffer(buff, count):
+        return list(lex_buffer(buff, source=f"<Example {count}>"))
+
+    curse_repl(handle_buffer)

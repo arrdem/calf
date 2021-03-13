@@ -5,9 +5,10 @@ The Calf parser.
 from collections import namedtuple
 from itertools import tee
 import logging
+import sys
 from typing import NamedTuple, Callable
 
-from calf.lexer import lex_buffer, lex_file
+from calf.lexer import CalfLexer, lex_buffer, lex_file
 from calf.grammar import MATCHING, WHITESPACE_TYPES
 from calf.token import *
 
@@ -131,12 +132,8 @@ def parse_stream(stream,
     tokens = None
 
     for token in stream:
-        print(f"Got token {token!r}")
-
         # Case 1 - we got the close character we were looking for.
         if stack and token.type == stack[-1].close_type:
-            print("It's a matching close")
-
             # Extract the stack element
             el = stack.pop()
 
@@ -218,3 +215,14 @@ def parse_file(file):
 
     for atom in parse_stream(lex_file(file)):
         yield atom
+
+
+def main():
+    """A CURSES application for using the parser."""
+
+    from calf.curserepl import curse_repl
+
+    def handle_buffer(buff, count):
+        return list(parse_stream(lex_buffer(buff, source=f"<Example {count}>"), discard_whitespace=False))
+
+    curse_repl(handle_buffer)
