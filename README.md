@@ -17,4 +17,6 @@ In fact who the hell knows what this is gonna be.
 
 ## License
 
-MIT'd to Reid 'arrdem' McKenzie, 3/5/2017
+Copyright Reid 'arrdem' McKenzie, 3/5/2017.
+Distributed under the terms of the MIT license.
+See the included `LICENSE` file for more.
