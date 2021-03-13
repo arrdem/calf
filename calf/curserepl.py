@@ -9,12 +9,13 @@ from curses.textpad import Textbox, rectangle
 def curse_repl(handle_buffer):
 
     def _main(stdscr):
-        maxy, maxx = stdscr.getmaxyx()
+        maxy, maxx = 0, 0
 
         examples = []
         count = 1
         while 1:
             # Prompt
+            maxy, maxx = stdscr.getmaxyx()
             stdscr.addstr(0, 0, "Enter example: (hit Ctrl-G to execute, Ctrl-C to exit)", curses.A_BOLD)
             editwin = curses.newwin(5, maxx - 4,
                                     2, 2)
