@@ -105,7 +105,7 @@ class CalfMissingCloseParseError(CalfParseError):
     def __str__(self):
         return "Parse error: expected %s starting from %r, got end of file." % (
             self.expected_close_token,
-            self.open_token.position,
+            self.open_token.start_position,
         )
 
 

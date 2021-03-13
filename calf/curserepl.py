@@ -8,6 +8,12 @@ from curses.textpad import Textbox, rectangle
 
 def curse_repl(handle_buffer):
 
+    def handle(buff, count):
+        try:
+            return list(handle_buffer(buff, count)), None
+        except Exception as e:
+            return None, e
+
     def _main(stdscr):
         maxy, maxx = 0, 0
 
@@ -26,13 +32,19 @@ def curse_repl(handle_buffer):
 
             # Read
             box = Textbox(editwin)
-            box.edit()
+            try:
+                box.edit()
+            except KeyboardInterrupt:
+                break
 
             # Get resulting contents
             buff = box.gather().strip()
-            assert buff
+            if not buff:
+                continue
 
-            examples.append((count, buff, list(handle_buffer(buff, count))))
+            vals, err = handle(buff, count)
+
+            examples.append((count, buff, vals, err))
 
             # Print
             cur = 8
@@ -40,10 +52,11 @@ def curse_repl(handle_buffer):
                 nonlocal cur
                 # This is how we handle going off the bottom of the scren lol
                 if cur < maxy:
+                    stdscr.addstr(cur, 0, " " * maxx)  # Shitty line clear
                     stdscr.addstr(cur, x, str, attr)
                     cur += (len(str.split("\n")) or 1)
 
-            for ex, buff, tokens in reversed(examples):
+            for ex, buff, vals, err in reversed(examples):
                 putstr(f"Example {ex}", attr=curses.A_BOLD)
 
                 for l in buff.split("\n"):
@@ -51,8 +64,15 @@ def curse_repl(handle_buffer):
 
                 putstr("")
 
-                for x, t in zip(range(1, 1<<64), tokens):
-                    putstr(f"    {x:<3}) " + repr(t))
+                if vals:
+                    for x, t in zip(range(1, 1<<64), vals):
+                        putstr(f"    {x:<3}) " + repr(t))
+
+                elif err:
+                    err = str(err)
+                    err = err.split("\n")
+                    for l in err:
+                        putstr(f"      {l}", attr=curses.COLOR_YELLOW)
 
                 putstr("")
 
