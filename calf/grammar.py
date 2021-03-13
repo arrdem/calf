@@ -16,6 +16,17 @@ FLOAT_PATTERN = r"(?P<body>({i})(\.(\d*))?)?([eE](?P<exponent>{i}))?".format(
     i=SIMPLE_INTEGER
 )
 
+# HACK (arrdem 2021-03-13):
+#
+#   The lexer is INCREMENTAL not TOTAL. It works by incrementally greedily
+#   building up strings that are PARTIAL matches. This means it has no support
+#   for the " closing anchor of a string, or the \n closing anchor of a comment.
+#   So we have to do this weird thing where the _required_ terminators are
+#   actually _optional_ here so that the parser works.
+STRING_PATTERN = r'"((\\"|[^"])*?)"?'
+TRIPPLE_STRING_PATTERN = r'""".*?(""")?'
+COMMENT_PATTERN = r";(([^\n\r]*)(\n\r?)?)"
+
 TOKENS = [
     # Paren (noral) lists
     (r"\(", "PAREN_LEFT",),
@@ -28,7 +39,8 @@ TOKENS = [
     (r"\}", "BRACE_RIGHT",),
     (r"\^", "META",),
     (r"'", "SINGLE_QUOTE",),
-    (r'"', "DOUBLE_QUOTE",),
+    (STRING_PATTERN, "STRING",),
+    (TRIPPLE_STRING_PATTERN, "STRING",),
     (r"#", "MACRO_DISPATCH",),
     # Symbols
     (SYMBOL_PATTERN, "SYMBOL",),
@@ -45,7 +57,7 @@ TOKENS = [
     # Note that the whitespace token will contain at most one newline
     (r"(\n\r?|[,\t ]*)", "WHITESPACE",),
     # Comment
-    (r";(([^\n\r]*)(\n\r?)?)", "COMMENT",),
+    (COMMENT_PATTERN, "COMMENT",),
     # Strings
     (r'"(?P<body>(?:[^\"]|\.)*)"', "STRING"),
 ]

@@ -64,7 +64,7 @@ class CalfLexer:
                 raise ValueError("Entered invalid state - no candidates!")
 
             buff2 = buffer + chr
-            can2 = [t for t in candidates if re_whole_match(re_mem(t[0]), buff2)]
+            can2 = [t for t in candidates if re.fullmatch(t[0], buff2)]
 
             # Try to include the last read character to support longest-wins grammars
             if not can2 and len(candidates) >= 1:

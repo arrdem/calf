@@ -21,8 +21,3 @@ def memoize(f):
 @memoize
 def re_mem(regex):
     return re.compile(regex)
-
-
-def re_whole_match(pat, buff):
-    match = re.match(pat, buff)
-    return match is not None and match.group(0) == buff

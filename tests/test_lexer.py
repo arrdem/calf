@@ -28,6 +28,7 @@ def lex_single_token(buffer):
         ("}", "BRACE_RIGHT",),
         ("^", "META",),
         ("#", "MACRO_DISPATCH",),
+        ("'", "SINGLE_QUOTE"),
         ("foo", "SYMBOL",),
         ("foo/bar", "SYMBOL"),
         (":foo", "KEYWORD",),
@@ -37,6 +38,8 @@ def lex_single_token(buffer):
         ("\n", "WHITESPACE"),
         ("  ,    ", "WHITESPACE",),
         ("; this is a sample comment\n", "COMMENT"),
+        ('"foo"', "STRING"),
+        ('"foo bar baz"', "STRING"),
     ],
 )
 def test_lex_examples(text, token_type):
