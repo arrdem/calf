@@ -14,7 +14,7 @@ def curse_repl(handle_buffer):
         except Exception as e:
             return None, e
 
-    def _main(stdscr):
+    def _main(stdscr: curses.window):
         maxy, maxx = 0, 0
 
         examples = []
@@ -22,37 +22,21 @@ def curse_repl(handle_buffer):
         while 1:
             # Prompt
             maxy, maxx = stdscr.getmaxyx()
+            stdscr.clear()
+
             stdscr.addstr(0, 0, "Enter example: (hit Ctrl-G to execute, Ctrl-C to exit)", curses.A_BOLD)
             editwin = curses.newwin(5, maxx - 4,
                                     2, 2)
             rectangle(stdscr,
                       1, 1,
                       1 + 5 + 1, maxx - 2)
-            stdscr.refresh()
 
-            # Read
-            box = Textbox(editwin)
-            try:
-                box.edit()
-            except KeyboardInterrupt:
-                break
-
-            # Get resulting contents
-            buff = box.gather().strip()
-            if not buff:
-                continue
-
-            vals, err = handle(buff, count)
-
-            examples.append((count, buff, vals, err))
-
-            # Print
+            # Printing is part of the prompt
             cur = 8
             def putstr(str, x=0, attr=0):
                 nonlocal cur
                 # This is how we handle going off the bottom of the scren lol
                 if cur < maxy:
-                    stdscr.addstr(cur, 0, " " * maxx)  # Shitty line clear
                     stdscr.addstr(cur, x, str, attr)
                     cur += (len(str.split("\n")) or 1)
 
@@ -75,6 +59,23 @@ def curse_repl(handle_buffer):
                         putstr(f"      {l}", attr=curses.COLOR_YELLOW)
 
                 putstr("")
+
+            stdscr.refresh()
+
+            # Readf rom the user
+            box = Textbox(editwin)
+            try:
+                box.edit()
+            except KeyboardInterrupt:
+                break
+
+            buff = box.gather().strip()
+            if not buff:
+                continue
+
+            vals, err = handle(buff, count)
+
+            examples.append((count, buff, vals, err))
 
             count += 1
             stdscr.refresh()
