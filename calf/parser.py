@@ -42,16 +42,42 @@ def mk_dict(contents, open=None, close=None):
         close.start_position,
     )
 
+def mk_str(token):
+    buff = token.value
+
+    if buff.startswith('"""') and not buff.endswith('"""'):
+        raise ValueError('Unterminated tripple quote string')
+
+    elif buff.startswith('"') and not buff.endswith('"'):
+        raise ValueError('Unterminated quote string')
+
+    elif not buff.startswith('"') or buff == '"' or buff == '"""':
+        raise ValueError('Illegal string')
+
+    if buff.startswith('"""'):
+        buff = buff[3:-3]
+    else:
+        buff = buff[1:-1]
+
+    buff = buff.encode("utf-8").decode("unicode_escape")  # Handle escape codes
+
+    print(repr(buff))
+
+    return CalfStrToken(token, buff)
+
 
 MATCHING_CTOR = {
     # Compound tokens
     "PAREN_LEFT": mk_list,
     "BRACE_LEFT": mk_dict,
     "BRACKET_LEFT": mk_sqlist,
+
     # Singleton tokens
     "INTEGER": CalfIntegerToken,
     "FLOAT": CalfFloatToken,
-    "STRING": CalfStrToken,
+    "STRING": mk_str,
+    "SYMBOL": CalfSymbolToken,
+    "KEYWORD": CalfKeywordToken,
 }
 
 
@@ -178,17 +204,20 @@ def parse_stream(stream,
         elif token.type in WHITESPACE_TYPES and discard_whitespace:
             continue
 
-        # Case 5 - we got an internal token
-        elif stack and tokens is not None:
-            tokens.append(token)
-
-        # Case 6 - token with transformer
-        elif token.type in MATCHING_CTOR:
-            yield MATCHING_CTOR[token.type](token)
-
-        # Case 7 - top level token with no transformer
+        # Note: We use a hard else here so that we can then conditionally
+        # transform the token as shared codepath without having to put continue
+        # statements everywhere above or repeat ourselves.
         else:
-            yield token
+            if token.type in MATCHING_CTOR:
+                token = MATCHING_CTOR[token.type](token)
+
+            # Case 5 - we got an internal token
+            if stack and tokens is not None:
+                tokens.append(token)
+
+            # Case 6 - top level token with no transformer
+            else:
+                yield token
 
     # We've run out of tokens to scan and were still looking for something
     if stack:

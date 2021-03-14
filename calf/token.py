@@ -26,7 +26,8 @@ class CalfToken:
         self.more = more if more is not None else {}
 
     def __repr__(self):
-        return "<CalfToken:%s %r %r@%r:%r %r>" % (
+        return "<%s:%s %r %r@%r:%r %r>" % (
+            type(self).__name__,
             self.type,
             self.value,
             self.source,
@@ -146,33 +147,44 @@ class CalfStrToken(CalfToken, str):
     The final(ish) result of reading a string.
     """
 
-    def __new__(cls, value):
-        buff = value.value
-
-        if buff.startswith('"""') and not buff.endswith('"""'):
-            raise ValueError('Unterminated tripple quote string')
-
-        elif buff.startswith('"') and not buff.endswith('"'):
-            raise ValueError('Unterminated quote string')
-
-        elif not buff.startswith('"') or buff == '"' or buff == '"""':
-            raise ValueError('Illegal string')
-
-        if buff.startswith('"""'):
-            buff = buff[3:-3]
-        else:
-            buff = buff[1:-1]
-
-        buff = buff.encode("utf-8").decode("unicode_escape")  # Handle escape codes
-
+    def __new__(cls, token, buff):
         return str.__new__(cls, buff)
 
-    def __init__(self, value):
+    def __init__(self, token, buff):
         CalfToken.__init__(
             self,
-            value.type,
-            value.value,
-            value.source,
-            value.start_position,
-            value.more,
+            token.type,
+            buff,
+            token.source,
+            token.start_position,
+            token.more,
+        )
+        str.__init__(self)
+
+
+class CalfSymbolToken(CalfToken):
+    """A symbol."""
+
+    def __init__(self, token):
+        CalfToken.__init__(
+            self,
+            token.type,
+            token.value,
+            token.source,
+            token.start_position,
+            token.more,
+        )
+
+
+class CalfKeywordToken(CalfToken):
+    """A keyword."""
+
+    def __init__(self, token):
+        CalfToken.__init__(
+            self,
+            token.type,
+            token.value,
+            token.source,
+            token.start_position,
+            token.more,
         )
