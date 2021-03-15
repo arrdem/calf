@@ -177,3 +177,18 @@ def test_parse_bad_dict(text):
     """Assert that dicts with missmatched pairs don't parse."""
     with pytest.raises(Exception):
         next(cp.parse_buffer(text))
+
+
+@parametrize("text", [
+    "()",
+    "(1 1.1 1e2 -2 foo :foo foo/bar :foo/bar [{},])",
+    "{:foo bar, :baz [:qux]}",
+    "'foo",
+    "'[foo bar :baz 'qux, {}]",
+    "#foo []",
+    "^{} bar",
+])
+def test_examples(text):
+    """Shotgun examples showing we can parse some stuff."""
+
+    assert list(cp.parse_buffer(text))
