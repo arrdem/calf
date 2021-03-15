@@ -209,22 +209,20 @@ def parse_stream(stream,
 def parse_buffer(buffer,
                  discard_whitespace=True):
     """
-    Parses a buffer, producing a lazy sequence of all read top level forms.
+    Parses a buffer, producing a lazy sequence of all parsed level forms.
 
     Propagates all errors.
     """
 
-    for atom in parse_stream(lex_buffer(buffer), discard_whitespace):
-        yield atom
+    yield from parse_stream(lex_buffer(buffer), discard_whitespace)
 
 
 def parse_file(file):
     """
-    Parses a file, producing a lazy sequence of all read top level forms.
+    Parses a file, producing a lazy sequence of all parsed level forms.
     """
 
-    for atom in parse_stream(lex_file(file)):
-        yield atom
+    yield from parse_stream(lex_file(file))
 
 
 def main():
