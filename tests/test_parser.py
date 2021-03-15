@@ -68,6 +68,9 @@ def test_strings_round_trip(buff, value):
 
     # Strings
     ('("foo", "bar", "baz")', ["STRING", "STRING", "STRING"]),
+
+    # Lists
+    ('([] [] ())', ["SQLIST", "SQLIST", "LIST"]),
 ])
 def test_parse_list(text, element_types):
     """Test we can parse various lists of contents."""
@@ -111,6 +114,9 @@ def test_parse_list(text, element_types):
 
     # Strings
     ('["foo", "bar", "baz"]', ["STRING", "STRING", "STRING"]),
+
+    # Lists
+    ('[[] [] ()]', ["SQLIST", "SQLIST", "LIST"]),
 ])
 def test_parse_sqlist(text, element_types):
     """Test we can parse various 'square' lists of contents."""
@@ -159,3 +165,15 @@ def test_parse_dict(text, element_pairs):
     d_t = next(cp.parse_buffer(text, discard_whitespace=True))
     assert d_t.type == "DICT"
     assert [[t.type for t in pair] for pair in d_t.value] == element_pairs
+
+
+@parametrize("text", [
+    "{1}",
+    "{1, 2, 3}",
+    "{:foo}",
+    "{:foo :bar :baz}"
+])
+def test_parse_bad_dict(text):
+    """Assert that dicts with missmatched pairs don't parse."""
+    with pytest.raises(Exception):
+        next(cp.parse_buffer(text))

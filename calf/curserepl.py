@@ -41,22 +41,24 @@ def curse_repl(handle_buffer):
                     cur += (len(str.split("\n")) or 1)
 
             for ex, buff, vals, err in reversed(examples):
-                putstr(f"Example {ex}", attr=curses.A_BOLD)
+                putstr(f"Example {ex}:", attr=curses.A_BOLD)
 
                 for l in buff.split("\n"):
                     putstr(f"    | {l}")
 
                 putstr("")
 
-                if vals:
-                    for x, t in zip(range(1, 1<<64), vals):
-                        putstr(f"    {x:<3}) " + repr(t))
-
-                elif err:
+                if err:
                     err = str(err)
                     err = err.split("\n")
+                    putstr("  Error:")
                     for l in err:
-                        putstr(f"      {l}", attr=curses.COLOR_YELLOW)
+                        putstr(f"    {l}", attr=curses.COLOR_YELLOW)
+
+                elif vals:
+                    putstr("  Value:")
+                    for x, t in zip(range(1, 1<<64), vals):
+                        putstr(f" {x:>3}) " + repr(t))
 
                 putstr("")
 

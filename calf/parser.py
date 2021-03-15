@@ -34,6 +34,9 @@ def pairwise(l: list) -> iter:
 
 
 def mk_dict(contents, open=None, close=None):
+    # FIXME (arrdem 2021-03-14):
+    #   Raise a real SyntaxError of some sort.
+    assert len(contents) % 2 == 0, "Improper dict!"
     return CalfDictToken(
         "DICT",
         list(pairwise(contents)),
@@ -61,44 +64,32 @@ def mk_str(token):
 
     buff = buff.encode("utf-8").decode("unicode_escape")  # Handle escape codes
 
-    print(repr(buff))
-
     return CalfStrToken(token, buff)
 
 
-MATCHING_CTOR = {
-    # Compound tokens
+CTORS = {
     "PAREN_LEFT": mk_list,
-    "BRACE_LEFT": mk_dict,
     "BRACKET_LEFT": mk_sqlist,
-
-    # Singleton tokens
+    "BRACE_LEFT": mk_dict,
+    "STRING": mk_str,
     "INTEGER": CalfIntegerToken,
     "FLOAT": CalfFloatToken,
-    "STRING": mk_str,
     "SYMBOL": CalfSymbolToken,
     "KEYWORD": CalfKeywordToken,
 }
-
-
-class ParseStackElement(NamedTuple):
-    """The parser maintains an internal push-pop top stack used to build up tokens.
-
-    Parse stack elements track all the component subtokens parsed so far, the
-    close token which is being awaited and the constructor which will
-    manufacture a "complete" token given the contents, open and close tokens.
-
-    """
-    tokens: list
-    open_token: CalfToken
-    close_type: str
-    ctor: Callable[[list, CalfToken, CalfToken], CalfToken]
 
 
 class CalfParseError(Exception):
     """
     Base class for representing errors encountered parsing.
     """
+
+    def __init__(self, message: str, token: CalfToken):
+        super(Exception, self).__init__(message)
+        self.token = token
+
+    def __str__(self):
+        return f"Parse error at {self.token.loc()}: " + super().__str__()
 
 
 class CalfUnexpectedCloseParseError(CalfParseError):
@@ -107,15 +98,12 @@ class CalfUnexpectedCloseParseError(CalfParseError):
     """
 
     def __init__(self, token, matching_open=None):
-        super(CalfParseError, self).__init__()
+        msg = f"encountered unexpected closing {token!r}"
+        if matching_open:
+            msg += f" which appears to match {matching_open!r}"
+        super(CalfParseError, self).__init__(msg, token)
         self.token = token
         self.matching_open = matching_open
-
-    def __str__(self):
-        msg = f"Parse error: encountered unexpected closing {self.token!r}"
-        if self.matching_open:
-            msg += " which appears to match {self.matching_open!r}"
-        return msg
 
 
 class CalfMissingCloseParseError(CalfParseError):
@@ -124,19 +112,16 @@ class CalfMissingCloseParseError(CalfParseError):
     """
 
     def __init__(self, expected_close_token, open_token):
-        super(CalfMissingCloseParseError, self).__init__()
-        self.expected_close_token = expected_close_token
-        self.open_token = open_token
-
-    def __str__(self):
-        return "Parse error: expected %s starting from %r, got end of file." % (
-            self.expected_close_token,
-            self.open_token.start_position,
+        super(CalfMissingCloseParseError, self).__init__(
+            f"expected {expected_close_token} starting from {open_token}, got end of file.",
+            open_token
         )
+        self.expected_close_token = expected_close_token
 
 
 def parse_stream(stream,
-                 discard_whitespace: bool = True):
+                 discard_whitespace: bool = True,
+                 stack: list = None):
     """Parses a token stream, producing a lazy sequence of all read top level forms.
 
     If `discard_whitespace` is truthy, then no WHITESPACE tokens will be emitted
@@ -146,83 +131,79 @@ def parse_stream(stream,
 
     """
 
-    # `stack` is a list (used as a stack) of tuples (buffer, close, ctor).
-    # Tokens are accumulated in a buffer, until a matching close token is
-    # found.
-    #
-    # This is a very simple parser intended to support only the simplest of
-    # syntactic constructs while providing actually quite good parse error
-    # traceback.
+    stack = stack or []
 
-    stack = []
-    tokens = None
+    def recur(_stack = None):
+        yield from parse_stream(stream, discard_whitespace, _stack or stack)
 
     for token in stream:
-        # Case 1 - we got the close character we were looking for.
-        if stack and token.type == stack[-1].close_type:
-            # Extract the stack element
-            el = stack.pop()
-
-            # Call the ctor
-            token = el.ctor(el.tokens, open=el.open_token, close=token)
-
-            # Fix the tokens reference
-            if stack:
-                tokens = stack[-1].tokens
-
-            else:
-                tokens = None
-
-            # Figure out where the new token goes
-            if stack and tokens is not None:
-                tokens.append(token)
-
-            elif not stack:
-                yield token
-
-            else:
-                raise CalfParseError(f"Illegal state! considering {token}, stack {stack} and tokens {tokens}")
-
-        # Case 2 - we got a new open token
-        elif token.type in MATCHING:
-            # Create a new tokens array
-            tokens = list()
-
-            # Create & push a new stack element
-            stack.append(
-                ParseStackElement(
-                    tokens, token, MATCHING[token.type], MATCHING_CTOR[token.type]
-                )
-            )
-
-        # Case 3 - we got an unexpected close
-        elif (token.type in list(MATCHING.values())
-              and (open_token := next((e for e in reversed(stack) if e.close_type == token.type), None))):
-            raise CalfParseError(token, open_token)
-
-        # Case 4 - we got whitespace
-        elif token.type in WHITESPACE_TYPES and discard_whitespace:
+        # Whitespace discarding
+        if token.type == "WHITESPACE" and discard_whitespace:
             continue
 
-        # Note: We use a hard else here so that we can then conditionally
-        # transform the token as shared codepath without having to put continue
-        # statements everywhere above or repeat ourselves.
-        else:
-            if token.type in MATCHING_CTOR:
-                token = MATCHING_CTOR[token.type](token)
+        # Built in reader macros
+        elif token.type == "META":
+            try:
+                meta_t = next(recur())
+            except StopIteration:
+                raise CalfParseError("^ not followed by meta value", token)
 
-            # Case 5 - we got an internal token
-            if stack and tokens is not None:
-                tokens.append(token)
+            try:
+                value_t = next(recur())
+            except StopIteration:
+                raise CalfParseError("^ not followed by value", token)
 
-            # Case 6 - top level token with no transformer
-            else:
+            yield CalfMetaToken(token, meta_t, value_t)
+
+        elif token.type == "MACRO_DISPATCH":
+            try:
+                dispatch_t = next(recur())
+            except StopIteration:
+                raise CalfParseError("# not followed by dispatch value", token)
+
+            try:
+                value_t = next(recur())
+            except StopIteration:
+                raise CalfParseError("^ not followed by value", token)
+
+            yield CalfDispatchToken(token, dispatch_t, value_t)
+
+        elif token.type == "SINGLE_QUOTE":
+            try:
+                quoted_t = next(recur())
+            except StopIteration:
+                raise CalfParseError("' not followed by quoted form", token)
+
+            yield CalfQuoteToken(token, quoted_t)
+
+        # Compounds
+        elif token.type in MATCHING.keys():
+            balancing = MATCHING[token.type]
+            elements = list(recur(stack + [(balancing, token)]))
+            # Elements MUST have at least the close token in it
+            if not elements:
+                raise CalfMissingCloseParseError(balancing, token)
+
+            elements, close = elements[:-1], elements[-1]
+            yield CTORS[token.type](elements, token, close)
+
+        elif token.type in MATCHING.values():
+            # Case of matching the immediate open
+            if stack and token.type == stack[-1][0]:
                 yield token
+                break
 
-    # We've run out of tokens to scan and were still looking for something
-    if stack:
-        el = stack.pop()  # we don't care
-        raise CalfMissingCloseParseError(el.close_type, el.open_token)
+            # Case of maybe matching something else, but definitely being wrong
+            else:
+                matching = next(reversed([t[1] for t in stack if t[0] == token.type]), None)
+                raise CalfUnexpectedCloseParseError(token, matching)
+
+        # Atoms
+        elif token.type in CTORS:
+            yield CTORS[token.type](token)
+
+        else:
+            yield token
 
 
 def parse_buffer(buffer,
@@ -252,6 +233,6 @@ def main():
     from calf.curserepl import curse_repl
 
     def handle_buffer(buff, count):
-        return list(parse_stream(lex_buffer(buff, source=f"<Example {count}>"), discard_whitespace=False))
+        return list(parse_stream(lex_buffer(buff, source=f"<Example {count}>")))
 
     curse_repl(handle_buffer)

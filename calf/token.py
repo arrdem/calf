@@ -26,14 +26,19 @@ class CalfToken:
         self.more = more if more is not None else {}
 
     def __repr__(self):
-        return "<%s:%s %r %r@%r:%r %r>" % (
+        return "<%s:%s %r %s %r>" % (
             type(self).__name__,
             self.type,
             self.value,
+            self.loc(),
+            self.more,
+        )
+
+    def loc(self):
+        return "%r@%r:%r" % (
             self.source,
             self.line,
             self.column,
-            self.more,
         )
 
     def __str__(self):
@@ -184,6 +189,50 @@ class CalfKeywordToken(CalfToken):
             self,
             token.type,
             token.value,
+            token.source,
+            token.start_position,
+            token.more,
+        )
+
+
+class CalfMetaToken(CalfToken):
+    """A ^ meta token."""
+
+    def __init__(self, token, meta, value):
+        CalfToken.__init__(
+            self,
+            token.type,
+            value,
+            token.source,
+            token.start_position,
+            token.more,
+        )
+        self.meta = meta
+
+
+class CalfDispatchToken(CalfToken):
+    """A # macro dispatch token."""
+
+    def __init__(self, token, tag, value):
+        CalfToken.__init__(
+            self,
+            token.type,
+            value,
+            token.source,
+            token.start_position,
+            token.more,
+        )
+        self.tag = tag
+
+
+class CalfQuoteToken(CalfToken):
+    """A ' quotation."""
+
+    def __init__(self, token, quoted):
+        CalfToken.__init__(
+            self,
+            token.type,
+            quoted,
             token.source,
             token.start_position,
             token.more,
