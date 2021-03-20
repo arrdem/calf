@@ -11,7 +11,6 @@ Calf is a testbed.
 It's supposed to be a lightweight, unstable, easy for me to hack on substrate for exploring those old ideas and some new ones.
 
 Particularly I'm interested in:
-
 - compilers-as-databases (or using databases)
 - stream processing and process models of computation more akin to Erlang
 - reliability sensitive programming models (failure, recovery, process supervision)
@@ -29,17 +28,20 @@ Microservices seem to have won, and functions-as-a-service seem to be a rising t
 
 In these environments, programs begin to consist entirely of messaging with other programs over shared channels such as traditional HTTP or other RPC tools or message buses such as Kafka, gRPC, ThriftMux and soforth.
 
-A key challenge with these connective services is how they handle failure, and the ergonomic difficulties of building and deploying connective programs.
-Tools like Argo, Airflow and the like begin to talk about such networked or evented programs as DAGs.
-And in a sense they're right.
-Many interesting computations may be modeled and implemented with DAGs.
+Key challenges with these connective services are:
+- How they handle failure
+- How they achieve reliability
+- The ergonomic difficulties of building and deploying connective programs
+- The operational difficulties of managing N-many 'reliable' services
 
-Argo, Airflow and friends are ultimately schedulers and some provide executors as well.
+Tools like Argo, Airflow and the like begin to talk about such networked or evented programs as DAGs; providing schedulers for sequencing actions and executors for performing actions.
 
-Airflow provides a Python execution environment, but fails to provide an isolation boundary (such as a container or other subprocess/`fork()` boundary) allowing users to bring their own dependencies.
+Airflow provides a programmable Python scheduler environment, but fails to provide an execution isolation boundary (such as a container or other subprocess/`fork()` boundary) allowing users to bring their own dependencies.
 Instead Airflow users must build custom Airflow packagings which bundle dependencies into the Airflow instance.
+This means that Airflow deployments can only be centralized with difficulty due to shared dependencies and disparate dependency lifecycles and limits the return on investment of the platform by increasing operational burden.
 
-Argo ducks this mistake, providing a robust scheduler and leveraging k8s for its executor but this comes at considerable ergonomic costs for trivial tasks.
+Argo ducks this mistake, providing a robust scheduler and leveraging k8s for its executor.
+This allows Argo to be managed independently of any of the workloads it manages - a huge step forwards over Airflow - but this comes at considerable ergonomic costs for trivial tasks and provides a more limited scheduler.
 
 Previously I developed a system which provided a much stronger DSL than Airflow's, but made the same key mistake of not decoupling execution from the scheduler/coordinator.
 Calf is a sketch of a programming language and system with a nearly fully featured DSL, and decoupling between scheduling (control flow of programs) and execution of "terminal" actions.
