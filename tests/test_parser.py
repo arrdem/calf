@@ -27,8 +27,21 @@ def test_bad_strings_raise(text):
     "(1.0",
     "{1.0",
 ])
-def test_unbalanced_raises(text):
+def test_unterminated_raises(text):
     with pytest.raises(cp.CalfMissingCloseParseError):
+        next(cp.parse_buffer(text))
+
+
+@parametrize("text", [
+    "[{]",
+    "[(]",
+    "({)",
+    "([)",
+    "{(}",
+    "{[}",
+])
+def test_unbalanced_raises(text):
+    with pytest.raises(cp.CalfUnexpectedCloseParseError):
         next(cp.parse_buffer(text))
 
 
