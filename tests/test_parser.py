@@ -28,6 +28,7 @@ def test_bad_strings_raise(text):
     "{1.0",
 ])
 def test_unterminated_raises(text):
+    """Tests asserting that we don't let unterminated collections parse."""
     with pytest.raises(cp.CalfMissingCloseParseError):
         next(cp.parse_buffer(text))
 
@@ -41,6 +42,7 @@ def test_unterminated_raises(text):
     "{[}",
 ])
 def test_unbalanced_raises(text):
+    """Tests asserting that we don't let missmatched collections parse."""
     with pytest.raises(cp.CalfUnexpectedCloseParseError):
         next(cp.parse_buffer(text))
 
