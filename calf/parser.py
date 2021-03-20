@@ -121,6 +121,7 @@ class CalfMissingCloseParseError(CalfParseError):
 
 def parse_stream(stream,
                  discard_whitespace: bool = True,
+                 discard_comments: bool = True,
                  stack: list = None):
     """Parses a token stream, producing a lazy sequence of all read top level forms.
 
@@ -134,11 +135,17 @@ def parse_stream(stream,
     stack = stack or []
 
     def recur(_stack = None):
-        yield from parse_stream(stream, discard_whitespace, _stack or stack)
+        yield from parse_stream(stream,
+                                discard_whitespace,
+                                discard_comments,
+                                _stack or stack)
 
     for token in stream:
         # Whitespace discarding
         if token.type == "WHITESPACE" and discard_whitespace:
+            continue
+
+        elif token.type == "COMMENT" and discard_comments:
             continue
 
         # Built in reader macros
@@ -210,14 +217,17 @@ def parse_stream(stream,
 
 
 def parse_buffer(buffer,
-                 discard_whitespace=True):
+                 discard_whitespace=True,
+                 discard_comments=True):
     """
     Parses a buffer, producing a lazy sequence of all parsed level forms.
 
     Propagates all errors.
     """
 
-    yield from parse_stream(lex_buffer(buffer), discard_whitespace)
+    yield from parse_stream(lex_buffer(buffer),
+                            discard_whitespace,
+                            discard_comments)
 
 
 def parse_file(file):
