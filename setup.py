@@ -26,4 +26,7 @@ setup(
             "calf = calf.server:main",
         ]
     },
+    install_requires=[
+        "pyrsistent~=0.17.0",
+    ]
 )

@@ -128,7 +128,7 @@ def lex_buffer(buffer, source="<Buffer>", metadata=None):
 def main():
     """A CURSES application for using the lexer."""
 
-    from calf.curserepl import curse_repl
+    from calf.cursedrepl import curse_repl
 
     def handle_buffer(buff, count):
         return list(lex_buffer(buff, source=f"<Example {count}>"))

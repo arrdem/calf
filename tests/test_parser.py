@@ -22,6 +22,16 @@ def test_bad_strings_raise(text):
         next(cp.parse_buffer(text))
 
 
+@parametrize("text", [
+    "[1.0",
+    "(1.0",
+    "{1.0",
+])
+def test_unbalanced_raises(text):
+    with pytest.raises(cp.CalfMissingCloseParseError):
+        next(cp.parse_buffer(text))
+
+
 @parametrize("buff, value", [
     ('"foo"', "foo"),
     ('"foo\tbar"', "foo\tbar"),

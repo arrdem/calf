@@ -185,6 +185,9 @@ def parse_stream(stream,
                 raise CalfMissingCloseParseError(balancing, token)
 
             elements, close = elements[:-1], elements[-1]
+            if close.type != MATCHING[token.type]:
+                raise CalfMissingCloseParseError(balancing, token)
+
             yield CTORS[token.type](elements, token, close)
 
         elif token.type in MATCHING.values():
@@ -228,7 +231,7 @@ def parse_file(file):
 def main():
     """A CURSES application for using the parser."""
 
-    from calf.curserepl import curse_repl
+    from calf.cursedrepl import curse_repl
 
     def handle_buffer(buff, count):
         return list(parse_stream(lex_buffer(buff, source=f"<Example {count}>")))

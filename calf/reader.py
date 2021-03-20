@@ -11,18 +11,9 @@ from typing import *
 from calf.lexer import lex_buffer, lex_file
 from calf.parser import parse_stream
 from calf.token import *
-
-DEFAULT_DISPATCH = {
-    "LIST": lambda t: t.value,
-    "SQLIST": lambda t: t.value,
-    "DICT": lambda t: t.value,
-}
-
+from calf.types import *
 
 class CalfReader(object):
-    def make_keyword(self, v: str) -> Any:
-        return v
-
     def handle_keyword(self, t: CalfToken) -> Any:
         """Convert a token to an Object value for a symbol.
 
@@ -31,10 +22,7 @@ class CalfReader(object):
 
         """
 
-        return self.make_keyword(t.value)
-
-    def make_symbol(self, v: str) -> Any:
-        return v
+        return Keyword.of(t.more.get("name"), t.more.get("namespace"))
 
     def handle_symbol(self, t: CalfToken) -> Any:
         """Convert a token to an Object value for a symbol.
@@ -44,7 +32,7 @@ class CalfReader(object):
 
         """
 
-        return self.make_symbol(t.value)
+        return Symbol.of(t.more.get("name"), t.more.get("namespace"))
 
     def handle_dispatch(self, t: CalfDispatchToken) -> Any:
         """Handle a #foo <> dispatch token.
@@ -73,24 +61,36 @@ class CalfReader(object):
 
         return self.read1(t.value)
 
+    def make_quote(self):
+        """Factory. Returns the quote or equivalent symbol. May use `self.make_symbol()` to do so."""
+
+        return Symbol.of("quote")
+
     def handle_quote(self, t: CalfQuoteToken) -> Any:
         """Handle a 'foo quote form."""
 
-        return [self.make_symbol("quote"), self.read1(t.value)]
+        return Vector.of([self.make_quote(), self.read1(t.value)])
 
     def read1(self, t: CalfToken) -> Any:
         # Note: 'square' and 'round' lists are treated the same. This should be
         # a hook. Should {} be a "list" too until it gets reader hooked into
         # being a mapping or a set?
         if isinstance(t, CalfListToken):
-            return list(self.read(t.value))
+            return Vector.of(self.read(t.value))
 
         elif isinstance(t, CalfDictToken):
-            return {self.read1(k): self.read1(v)
-                    for k, v in t.items()}
+            return Map.of([(self.read1(k), self.read1(v))
+                           for k, v in t.items()])
 
+        # Magical pairwise stuff
         elif isinstance(t, CalfQuoteToken):
             return self.handle_quote(t)
+
+        elif isinstance(t, CalfMetaToken):
+            return self.handle_meta(t)
+
+        elif isinstance(t, CalfDispatchToken):
+            return self.handle_dispatch(t)
 
         # Stuff with real factories
         elif isinstance(t, CalfKeywordToken):
@@ -100,8 +100,14 @@ class CalfReader(object):
             return self.handle_symbol(t)
 
         # Terminals
-        elif isinstance(t, (CalfStrToken, CalfFloatToken, CalfIntegerToken)):
-            return t.value
+        elif isinstance(t, CalfStrToken):
+            return str(t)
+
+        elif isinstance(t, CalfIntegerToken):
+            return int(t)
+
+        elif isinstance(t, CalfFloatToken):
+            return float(t)
 
         else:
             raise ValueError(f"Unsupported token type {t!r} ({type(t)})")
@@ -142,7 +148,7 @@ def read_file(file):
 def main():
     """A CURSES application for using the reader."""
 
-    from calf.curserepl import curse_repl
+    from calf.cursedrepl import curse_repl
 
     def handle_buffer(buff, count):
         return list(read_stream(parse_stream(lex_buffer(buff, source=f"<Example {count}>"))))
