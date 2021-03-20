@@ -42,7 +42,7 @@ Instead Airflow users must build custom Airflow packagings which bundle dependen
 Argo ducks this mistake, providing a robust scheduler and leveraging k8s for its executor but this comes at considerable ergonomic costs for trivial tasks.
 
 Previously I developed a system which provided a much stronger DSL than Airflow's, but made the same key mistake of not decoupling execution from the scheduler/coordinator.
-Calf is a sketch of a programming language and system with a nearly fully featured DSL, and that decoupling between scheduling (control flow of programs) and execution of "terminal" actions.
+Calf is a sketch of a programming language and system with a nearly fully featured DSL, and decoupling between scheduling (control flow of programs) and execution of "terminal" actions.
 
 In short, think a Py-Lisp where instead of doing FFI directly to the parent Python instance you do FFI by enqueuing a (potentially retryable!) request onto a shared cluster message bus, from which subscriber worker processes elsewhere provide request/response handling.
 One could reasonably accuse this project of being an attempt to unify Erlang and a hosted Python to build a "BASH for distsys" tool while providing a multi-tenant execution platform that can be centrally managed.
