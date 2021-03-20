@@ -3,17 +3,49 @@
 > Calf: Noun.
 A young cow or ox.
 
-Calf is a scratchpad for [ox](http://ox-lang.org) in Python.
-Maybe it'll grow up into a real Ox, or maybe it'll become a tasty dinner and some other calf will take its place.
+Before I walked from the Clojure space, I kept throwing around the idea of "ox", an ur-clojure.
+Ox was supposed to experiment with some stuff around immutable namespaces and code as data which never came to fruition.
+I found the JVM environment burdensome, difficult to maintain velocity in, and my own ideas too un-formed to fit well into a rigorous object model.
 
-## WTF?
+Calf is a testbed.
+It's supposed to be a lightweight, unstable, easy for me to hack on substrate for exploring those old ideas and some new ones.
 
-It's a Clojure-like.
-In Python.
-Because fuck it, and why let Tim have all the fun and hy is nice but not my flavor.
+Particularly I'm interested in:
 
-It's not gonna be very Clojure-like tho.
-In fact who the hell knows what this is gonna be.
+- compilers-as-databases (or using databases)
+- stream processing and process models of computation more akin to Erlang
+- reliability sensitive programming models (failure, recovery, process supervision)
+
+I previously [blogged a bit](https://www.arrdem.com/2019/04/01/the_silver_tower/) about some ideas for what this could look like.
+I'm convinced that a programming environment based around [virtual resiliency](https://www.microsoft.com/en-us/research/publication/a-m-b-r-o-s-i-a-providing-performant-virtual-resiliency-for-distributed-applications/) is a worthwhile goal (having independently invented it) and worth trying to bring to a mainstream general purpose platform like Python.
+
+## Manifesto
+
+In the last decade, immutability has been affirmed in the programming mainstream as an effective tool for making programs and state more manageable, and one which has been repeatedly implemented at acceptable performance costs.
+Especially in messaging based rather than state sharing environments, immutability and "data" oriented programming is becoming more and more common.
+
+It also seems that much of the industry is moving towards message based reactive or network based connective systems.
+Microservices seem to have won, and functions-as-a-service seem to be a rising trend reflecting a desire to offload or avoid deployment management rather than wrangle stateful services.
+
+In these environments, programs begin to consist entirely of messaging with other programs over shared channels such as traditional HTTP or other RPC tools or message buses such as Kafka, gRPC, ThriftMux and soforth.
+
+A key challenge with these connective services is how they handle failure, and the ergonomic difficulties of building and deploying connective programs.
+Tools like Argo, Airflow and the like begin to talk about such networked or evented programs as DAGs.
+And in a sense they're right.
+Many interesting computations may be modeled and implemented with DAGs.
+
+Argo, Airflow and friends are ultimately schedulers and some provide executors as well.
+
+Airflow provides a Python execution environment, but fails to provide an isolation boundary (such as a container or other subprocess/`fork()` boundary) allowing users to bring their own dependencies.
+Instead Airflow users must build custom Airflow packagings which bundle dependencies into the Airflow instance.
+
+Argo ducks this mistake, providing a robust scheduler and leveraging k8s for its executor but this comes at considerable ergonomic costs for trivial tasks.
+
+Previously I developed a system which provided a much stronger DSL than Airflow's, but made the same key mistake of not decoupling execution from the scheduler/coordinator.
+Calf is a sketch of a programming language and system with a nearly fully featured DSL, and that decoupling between scheduling (control flow of programs) and execution of "terminal" actions.
+
+In short, think a Py-Lisp where instead of doing FFI directly to the parent Python instance you do FFI by enqueuing a (potentially retryable!) request onto a shared cluster message bus, from which subscriber worker processes elsewhere provide request/response handling.
+One could reasonably accuse this project of being an attempt to unify Erlang and a hosted Python to build a "BASH for distsys" tool while providing a multi-tenant execution platform that can be centrally managed.
 
 ## License
 
